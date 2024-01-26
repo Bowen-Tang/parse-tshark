@@ -16,7 +16,12 @@ sudo tshark -Y "mysql.query or ( tcp.srcport==3306)" -o tcp.calculate_timestamps
 ```
 ### 方式二：使用 tshark 3306 端口过滤、二次过滤文件内容中的 mysql.query
 ```
-sudo tshark -Y "mysql.query or ( tcp.srcport==3306)" -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|'
+sudo tshark -i eth0 -f "tcp port 3306" -a duration:3600 -b filesize:2000000 -b files:200 -w ts.pcap
+
+for i in `ls -lrth ts.*.pcap`
+do
+sudo tshark -r $i -Y "mysql.query or (tcp.srcport == 3306)" -T fields -e tcp.stream -e tcp.len -e frame.time_relative -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
+done
 ```
 注意：一定要使用该命令才能生成该工具能够解析的格式
 ## 2. 获取抓包过程中的 user db 信息
