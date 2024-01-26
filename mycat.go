@@ -53,7 +53,7 @@ var (
 
 func init() {
         flag.StringVar(&dbInfo, "dbinfo", "username:password@tcp(localhost:3306)/", "Database connection information")
-        flag.StringVar(&outputFile, "output", "output.json", "Output file name")
+        flag.StringVar(&outputFile, "output", "host.ini", "Output file name")
 }
 
 func main() {
