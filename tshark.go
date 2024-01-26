@@ -39,13 +39,14 @@ type OutputEntry struct {
     SQL          string `json:"sql"`
 }
 
+var rtValue float64
 
-func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB string) {
+func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB,ParseMode string) {
     if tsharkFile == "" || hostInfoFile == "" || replayoutFile == "" || defaultUser == "" || defaultDB == "" {
-        fmt.Println("Usage: ./parse-tshark -mode parse2file -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null")
+        fmt.Println("Usage: ./parse-tshark -mode parse2file -parsemode 1 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null")
         return
     }
-	// 读取 hostInfo 数据
+        // 读取 hostInfo 数据
     hostInfoMap := readHostInfo(hostInfoFile)
 
     // 打开 tshark 文件
@@ -78,7 +79,7 @@ func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB str
         if len(fields) >= 7 {
             // 如果之前有正在处理的行，先处理它
             if len(currentFields) > 0 {
-                processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultDB)
+                processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultDB,ParseMode)
                 currentFields = []string{}
             }
             currentFields = fields
@@ -90,7 +91,7 @@ func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB str
 
     // 处理最后一行
     if len(currentFields) > 0 {
-        processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultUser)
+        processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultUser,ParseMode)
     }
 
     if err := scanner.Err(); err != nil {
@@ -98,7 +99,7 @@ func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB str
     }
 }
 
-func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostInfoMap map[string]HostInfo, output *os.File,defaultUser ,defaultDB string) {
+func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostInfoMap map[string]HostInfo, output *os.File,defaultUser ,defaultDB,ParseMode string) {
     if len(fields) < 7 {
         fmt.Println("Skipped a line due to insufficient fields:", strings.Join(fields, "|"))
         return
@@ -117,21 +118,37 @@ func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostIn
     }
 
     if sql != "null" {
+        if ParseMode == "1" {
+            rtValue = 0
+        } else if ParseMode == "2" {
+            rtValue = timeDelta
+        }
+
         // 如果 SQL 不为空，向 map 添加一行数据
         queries[streamNo] = &QueryInfo{
             Sno:   streamNo,
-            Rt:    0,
+            Rt:    rtValue,
             Sip:   srcIP,
             Sport: srcPort,
             Sql:   sql,
         }
-    } else {
-        // 如果 SQL 为空，检查 map 中是否存在该 streamNo
-        if query, exists := queries[streamNo]; exists {
+    } else if query, exists := queries[streamNo]; exists {
+        if ParseMode == "1" {
             query.Rt += timeDelta
             if tcpLen > 0 {
                 // 将信息写入输出文件
-                outputEntry := createOutputEntry(query, hostInfoMap, srcIP+":"+srcPort,defaultUser ,defaultDB)
+                outputEntry := createOutputEntry(query, hostInfoMap, srcIP+":"+srcPort, defaultUser, defaultDB)
+                jsonData, _ := json.Marshal(outputEntry)
+                output.WriteString(string(jsonData) + "\n")
+
+                // 从 map 删除
+                delete(queries, streamNo)
+            }
+        } else if ParseMode == "2" {
+            if tcpLen > 0 {
+                query.Rt = timeDelta - query.Rt // 更新 Rt
+                // 将信息写入输出文件
+                outputEntry := createOutputEntry(query, hostInfoMap, srcIP+":"+srcPort, defaultUser, defaultDB)
                 jsonData, _ := json.Marshal(outputEntry)
                 output.WriteString(string(jsonData) + "\n")
 
