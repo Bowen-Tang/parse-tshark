@@ -9,23 +9,27 @@ yum install -y wireshark # Centos 7 自带的版本较低，但也能工作，�
 
 
 # 使用说明
-## 1. 使用 tshark 抓取 MySQL 数据包
-### 方式一：使用 tshark 增加 mysql.query 和 3306 端口过滤（资源不够时性能影响大）
+## 1. 使用 tshark 抓取 MySQL 数据包（tcpdump 抓取的数据包 parse-tshark 工具无法正确处理）
+### 方式一：使用 tshark 对 mysql.query 和 3306 端口过滤
+该方式会直接生成 parse-tshark 工具可读取的文件，生成的文件比较小，但在资源不够时对 MySQL 性能影响大
 ```
 sudo tshark -Y "mysql.query or ( tcp.srcport==3306)" -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
 ```
-### 方式二：使用 tshark 3306 端口过滤、二次过滤文件内容中的 mysql.query
+### 方式二：使用 tshark 3306 端口过滤，二次过滤文件内容中的 mysql.query
+该命令只是根据 3306 端口和 eth0 网卡抓包，生成的文件比较大，但不对数据进行格式化
 ```
 sudo tshark -i eth0 -f "tcp port 3306" -a duration:3600 -b filesize:2000000 -b files:200 -w ts.pcap
-
+```
+该命令针对步骤 1 生成的 pcap 文件进行处理，处理成 parst-tshark 工具可读的文件（建议将这些文件传输到回放服务器处理）
+```
 for i in `ls -lrth ts.*.pcap`
 do
 sudo tshark -r $i -Y "mysql.query or (tcp.srcport == 3306)" -T fields -e tcp.stream -e tcp.len -e frame.time_relative -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
 done
 ```
-注意：一定要使用该命令才能生成该工具能够解析的格式
+
 ## 2. 获取抓包过程中的 user db 信息
-由于抓包时抓取 user/db 信息过于复杂，所以通过工具每隔 500ms 获取一次 MySQL 数据库的 processlist 视图信息
+由于 tshark 抓包时获取 user/db 信息过于复杂、且存在局限性，所以通过工具每隔 500ms 获取一次 MySQL 数据库的 processlist 视图信息，通过源端 IP+端口 与 processlist 视图中的 host 匹配
 
 ```
 ./parse-tshark -mode getmysql -dbinfo 'username:password@tcp(localhost:3306)/information_schema' -output host.ini
@@ -38,23 +42,34 @@ done
 ./parse-tshark -mode getmycat -dbinfo 'username:password@tcp(localhost:9066)' -output host.ini
 
 ```
-mycat show @@connection 默认没记录 user 信息，所以抓出来是 null
+注意：mycat show @@connection 默认没记录 user 信息，所以在 host.ini 中显示的是 null
+
 ## 3. 解析数据包
-仅打印
+### 3.1 打印模式：将数据包中的 SQL 信息等打印到屏幕（该模式仅适用于调试）
 
 ```
-./parse-tshark -mode parse2cli -tsharkfile ./tshark.log
+# 使用解析模式 1，也就是对应 tshark 抓取方式一
+./parse-tshark -mode parse2cli -parsemode 1 -tsharkfile ./tshark.log
+# 使用解析模式 2，也就是对应 tshark 抓取方式二
+./parse-tshark -mode parse2cli -parsemode 2 -tsharkfile ./tshark.log
 ```
-生成 sql-replay 可回放的文件
-
+注意：两种抓包方式在计算 SQL 响应时间时不同，必须要将 parsemode 指定正确才能计算出正确的 SQL 执行时间
+### 3.2 解析模式：生成 sql-replay 可回放的文件
 ```
-./parse-tshark -mode parse2file -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
-
+# 使用解析模式 1，也就是对应 tshark 抓取方式一
+./parse-tshark -mode parse2file -parsemode 1 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
+# 使用解析模式 2，也就是对应 tshark 抓取方式一
+./parse-tshark -mode parse2file -parsemode 2 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
 ```
+注意：两种抓包方式在计算 SQL 响应时间时不同，必须要将 parsemode 指定正确才能计算出正确的 SQL 执行时间
 ## 4. 使用 sql-replay 进行回放
 说明：sql-replay 默认是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
 
 # 抓包对性能的影响
+测试环境: 8C VM
+MySQL: 8.0.33
+tshark: 3.2.3
+测试用例: sysbench
 | 并发 | 初始 TPS|CPU   |    tshark port| tshark port+mysql | tcpdump port|
 |: --- : |: --- :|:--- :|:    ---  :|: --- :|: ---  :|
 |1     |148.28   | 25.6%     |    143.56   |  138.20    |  145.14  |
@@ -62,8 +77,8 @@ mycat show @@connection 默认没记录 user 信息，所以抓出来是 null
 |10    |525.76   | 47.7%     |    495.98     | 457.25   |  511.26  |
 |50    |1103.53  | 73.9%     |    1017.46    | 871.50   |  1045.98 |
 |100   |1301.19  | 79.8%     |    1237.04    | 968.46   |  1255.13 |
-1. 低并发+资源充足时，影响不大
-2. 高并发+资源不够时，有 7%，增加 mysql filter 后性能退化 21%，tcpdump 性能退化 5%
+1. 低并发+资源充足时，“tshark 抓包方式一”、“tshark 抓包方式二”、“tcpdump 抓包方式”三者对 MySQL 的影响均不大
+2. 高并发+资源不够时，“tshark 抓包方式一”有 7% 影响，“tshark 抓包方式二”有 21% 影响，“tcpdump 抓包方式”有 5% 影响
 
 # 感谢[@plantegg](https://plantegg.github.io/)大佬分享的抓包方法
 [就是要你懂抓包](https://plantegg.github.io/2019/06/21/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82%E6%8A%93%E5%8C%85--WireShark%E4%B9%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%89%88tshark/)
