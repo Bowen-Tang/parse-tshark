@@ -11,7 +11,9 @@ func main() {
     flag.StringVar(&mode, "mode", "", "Mode of operation: parse2cli ,parse2file , getmysql, or getmycat")
 
     // 共用的标志
+    var ParseMode string
     var tsharkFile, dbInfo, outputFile,hostInfoFile , replayoutFile, defaultUser, defaultDB string
+    flag.StringVar(&ParseMode, "parsemode", "1", "tshark capture mode, 1 or 2")
     flag.StringVar(&tsharkFile, "tsharkfile", "", "Path to the tshark log file: tshark.log")
     flag.StringVar(&dbInfo, "dbinfo", "", "Database connection information: username:password@tcp(localhost:3306)/db")
     flag.StringVar(&outputFile, "output", "", "Output file name: host.ini")
@@ -29,9 +31,9 @@ func main() {
 
     switch mode {
     case "parse2cli":
-        Cli(tsharkFile)
+        Cli(tsharkFile,ParseMode)
     case "parse2file":
-        ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB)
+        ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB,ParseMode)
     case "getmysql":
         Get_Mysql(dbInfo,outputFile)
     case "getmycat":
