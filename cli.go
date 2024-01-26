@@ -23,7 +23,7 @@ var (
 )
 
 func init() {
-    flag.StringVar(&tsharkFile, "tshark", "tshark.log", "Path to the tshark log file")
+    flag.StringVar(&tsharkFile, "tsharkfile", "tshark.log", "Path to the tshark log file")
     flag.Parse()
 }
 
