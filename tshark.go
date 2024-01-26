@@ -78,7 +78,7 @@ func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB str
         if len(fields) >= 7 {
             // 如果之前有正在处理的行，先处理它
             if len(currentFields) > 0 {
-                processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultUser)
+                processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultDB)
                 currentFields = []string{}
             }
             currentFields = fields
