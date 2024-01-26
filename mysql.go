@@ -3,7 +3,6 @@ package main
 import (
         "database/sql"
         "encoding/json"
-        "flag"
         "fmt"
         "os"
         "time"
@@ -26,19 +25,12 @@ func (pi ProcessInfo) DBString() string {
         return "null" // 或者可以返回空字符串 ""，取决于您的需求
 }
 
-var (
-        dbInfo     string
-        outputFile string
-)
 
-func init() {
-        flag.StringVar(&dbInfo, "dbinfo", "username:password@tcp(localhost:3306)/", "Database connection information")
-        flag.StringVar(&outputFile, "output", "host.ini", "Output file name")
-}
-
-func main() {
-        flag.Parse()
-
+func Get_Mysql(dbInfo,outputFile string) {
+    if dbInfo == "" || outputFile == "" {
+        fmt.Println("Usage: ./parse-tshark -mode getmysql -dbinfo 'username:password@tcp(localhost:3306)/information_schema' -output host.ini")
+        return
+    }
         db, err := sql.Open("mysql", dbInfo)
         if err != nil {
                 panic(err)

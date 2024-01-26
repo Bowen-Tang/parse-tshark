@@ -3,7 +3,6 @@ package main
 import (
     "bufio"
     "encoding/json"
-    "flag"
     "fmt"
     "hash/crc32"
     "os"
@@ -40,25 +39,13 @@ type OutputEntry struct {
     SQL          string `json:"sql"`
 }
 
-var (
-    tsharkFile    string
-    hostInfoFile string
-    outputFile   string
-    defaultUser  string
-    defaultDB    string
-)
 
-func init() {
-    flag.StringVar(&tsharkFile, "tsharkfile", "tshark.log", "Path to the tshark log file")
-    flag.StringVar(&hostInfoFile, "hostinfo", "host.ini", "Path to the host info file")
-    flag.StringVar(&outputFile, "outfile", "tishark_out.json", "Path for the formated file")
-    flag.StringVar(&defaultUser, "defaultuser", "default_user", "Default username if not provided")
-    flag.StringVar(&defaultDB, "defaultdb", "default_db", "Default database if not provided")
-    flag.Parse()
-}
-
-func main() {
-    // 读取 hostInfo 数据
+func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB string) {
+    if tsharkFile == "" || hostInfoFile == "" || replayoutFile == "" || defaultUser == "" || defaultDB == "" {
+        fmt.Println("Usage: ./parse-tshark -mode parse2file -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null")
+        return
+    }
+	// 读取 hostInfo 数据
     hostInfoMap := readHostInfo(hostInfoFile)
 
     // 打开 tshark 文件
@@ -70,7 +57,7 @@ func main() {
     defer file.Close()
 
     // 打开输出文件
-    output, err := os.Create(outputFile)
+    output, err := os.Create(replayoutFile)
     if err != nil {
         fmt.Println("Error creating output file:", err)
         return
@@ -91,7 +78,7 @@ func main() {
         if len(fields) >= 7 {
             // 如果之前有正在处理的行，先处理它
             if len(currentFields) > 0 {
-                processAndOutputLine(currentFields, queries, hostInfoMap, output)
+                processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultUser)
                 currentFields = []string{}
             }
             currentFields = fields
@@ -103,7 +90,7 @@ func main() {
 
     // 处理最后一行
     if len(currentFields) > 0 {
-        processAndOutputLine(currentFields, queries, hostInfoMap, output)
+        processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultUser)
     }
 
     if err := scanner.Err(); err != nil {
@@ -111,7 +98,7 @@ func main() {
     }
 }
 
-func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostInfoMap map[string]HostInfo, output *os.File) {
+func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostInfoMap map[string]HostInfo, output *os.File,defaultUser ,defaultDB string) {
     if len(fields) < 7 {
         fmt.Println("Skipped a line due to insufficient fields:", strings.Join(fields, "|"))
         return
@@ -144,7 +131,7 @@ func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostIn
             query.Rt += timeDelta
             if tcpLen > 0 {
                 // 将信息写入输出文件
-                outputEntry := createOutputEntry(query, hostInfoMap, srcIP+":"+srcPort)
+                outputEntry := createOutputEntry(query, hostInfoMap, srcIP+":"+srcPort,defaultUser ,defaultDB)
                 jsonData, _ := json.Marshal(outputEntry)
                 output.WriteString(string(jsonData) + "\n")
 
@@ -155,7 +142,7 @@ func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostIn
     }
 }
 
-func createOutputEntry(query *QueryInfo, hostInfoMap map[string]HostInfo, host string) OutputEntry {
+func createOutputEntry(query *QueryInfo, hostInfoMap map[string]HostInfo, host ,defaultUser , defaultDB string) OutputEntry {
     // 构建完整的 host 字符串
     completeHost := query.Sip + ":" + query.Sport
 

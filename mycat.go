@@ -3,7 +3,6 @@ package main
 import (
         "database/sql"
         "encoding/json"
-        "flag"
         "fmt"
         "os"
         "time"
@@ -11,14 +10,14 @@ import (
         _ "github.com/go-sql-driver/mysql"
 )
 
-type ConnectionInfo struct {
+type ConnectionInfo1 struct {
         Host      string
         LocalPort int
         ID        int
         Schema    sql.NullString
 }
 
-func (ci ConnectionInfo) JSONOutput() (string, error) {
+func (ci ConnectionInfo1) JSONOutput() (string, error) {
         output := struct {
                 Host string `json:"host"`
                 ID   int    `json:"id"`
@@ -39,25 +38,20 @@ func (ci ConnectionInfo) JSONOutput() (string, error) {
         return string(jsonData), nil
 }
 
-func (ci ConnectionInfo) schemaString() string {
+func (ci ConnectionInfo1) schemaString() string {
         if ci.Schema.Valid {
                 return ci.Schema.String
         }
         return "null"
 }
 
-var (
-        dbInfo     string
-        outputFile string
-)
 
-func init() {
-        flag.StringVar(&dbInfo, "dbinfo", "username:password@tcp(localhost:3306)/", "Database connection information")
-        flag.StringVar(&outputFile, "output", "host.ini", "Output file name")
-}
 
-func main() {
-        flag.Parse()
+func Get_Mycat(dbInfo,outputFile string) {
+    if dbInfo == "" || outputFile == "" {
+        fmt.Println("Usage: ./parse-tshark -mode getmycat -dbinfo 'username:password@tcp(localhost:9066)' -output host.ini")
+        return
+    }
 
         db, err := sql.Open("mysql", dbInfo)
         if err != nil {
@@ -68,18 +62,18 @@ func main() {
         existingRecords := make(map[int]bool)
 
         for {
-                connectionList, err := queryDatabase(db)
+                connectionList, err := queryDatabase1(db)
                 if err != nil {
                         fmt.Println("Error querying database:", err)
                         continue
                 }
 
-                writeToFile(connectionList, outputFile, existingRecords)
+                writeToFile1(connectionList, outputFile, existingRecords)
                 time.Sleep(500 * time.Millisecond)
         }
 }
 
-func queryDatabase(db *sql.DB) ([]ConnectionInfo, error) {
+func queryDatabase1(db *sql.DB) ([]ConnectionInfo1, error) {
         query := "show @@connection"
         rows, err := db.Query(query)
         if err != nil {
@@ -87,10 +81,10 @@ func queryDatabase(db *sql.DB) ([]ConnectionInfo, error) {
         }
         defer rows.Close()
 
-        var connectionList []ConnectionInfo
+        var connectionList []ConnectionInfo1
         for rows.Next() {
                 var (
-                        ci           ConnectionInfo
+                        ci           ConnectionInfo1
                         processor    string
                         port         int
                         charset      string
@@ -111,7 +105,7 @@ func queryDatabase(db *sql.DB) ([]ConnectionInfo, error) {
         return connectionList, nil
 }
 
-func writeToFile(connectionList []ConnectionInfo, filePath string, existingRecords map[int]bool) {
+func writeToFile1(connectionList []ConnectionInfo1, filePath string, existingRecords map[int]bool) {
         if len(connectionList) == 0 {
                 return
         }

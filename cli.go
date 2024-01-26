@@ -3,14 +3,13 @@ package main
 import (
     "bufio"
     "fmt"
-    "flag"
     "os"
     "strconv"
     "strings"
 )
 
-// QueryInfo 结构体用于存储查询信息
-type QueryInfo struct {
+// QueryInfoc1 结构体用于存储查询信息
+type QueryInfoc1 struct {
     Sno   string
     Rt    float64
     Sip   string
@@ -18,18 +17,11 @@ type QueryInfo struct {
     Sql   string
 }
 
-var (
-    tsharkFile    string
-)
-
-func init() {
-    flag.StringVar(&tsharkFile, "tsharkfile", "tshark.log", "Path to the tshark log file")
-    flag.Parse()
-}
 
 
-// processLine 函数用于处理每行数据
-func processLine(fields []string, queries map[string]*QueryInfo) {
+
+// processLine1 函数用于处理每行数据
+func processLine1(fields []string, queries map[string]*QueryInfoc1) {
     if len(fields) < 7 {
         fmt.Println("Skipped a line due to insufficient fields:", strings.Join(fields, "|"))
         return
@@ -51,7 +43,7 @@ func processLine(fields []string, queries map[string]*QueryInfo) {
 
     if sql != "null" {
         // 如果 SQL 不为空，向 map 添加一行数据
-        queries[streamNo] = &QueryInfo{
+        queries[streamNo] = &QueryInfoc1{
             Sno:   streamNo,
             Rt:    0,
             Sip:   srcIP,
@@ -72,7 +64,13 @@ func processLine(fields []string, queries map[string]*QueryInfo) {
     }
 }
 
-func main() {
+// func main() {
+func Cli(tsharkFile string) {
+    if tsharkFile == "" {
+        fmt.Println("Usage: ./parse-tshark -mode parse2cli -tsharkfile ./tshark.log")
+        return
+    }
+
     // 打开文件
     file, err := os.Open(tsharkFile)
     if err != nil {
@@ -83,7 +81,7 @@ func main() {
 
     scanner := bufio.NewScanner(file)
     var currentFields []string
-    queries := make(map[string]*QueryInfo)
+    queries := make(map[string]*QueryInfoc1)
 
     // 逐行读取和处理
     for scanner.Scan() {
@@ -93,7 +91,7 @@ func main() {
         if len(fields) >= 7 {
             // 如果之前有正在处理的行，先处理它
             if len(currentFields) > 0 {
-                processLine(currentFields, queries)
+                processLine1(currentFields, queries)
                 currentFields = []string{}
             }
             currentFields = fields
@@ -105,7 +103,7 @@ func main() {
 
     // 处理最后一行
     if len(currentFields) > 0 {
-        processLine(currentFields, queries)
+        processLine1(currentFields, queries)
     }
 
     if err := scanner.Err(); err != nil {
