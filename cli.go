@@ -21,7 +21,7 @@ type QueryInfoc1 struct {
 
 
 // processLine1 函数用于处理每行数据
-func processLine1(fields []string, queries map[string]*QueryInfoc1) {
+func processLine1(fields []string, queries map[string]*QueryInfoc1, ParseMode string) {
     if len(fields) < 7 {
         fmt.Println("Skipped a line due to insufficient fields:", strings.Join(fields, "|"))
         return
@@ -32,8 +32,6 @@ func processLine1(fields []string, queries map[string]*QueryInfoc1) {
     timeDelta, _ := strconv.ParseFloat(fields[2], 64)
     srcIP := fields[3]
     srcPort := fields[4]
-//    sql := strings.Join(fields[7:],"\\n")
-    // 将 SQL 字段中的换行符替换为 \n
     sql := strings.Join(fields[7:], " ")
     sql = strings.ReplaceAll(sql, "\n", "\\n")
 
@@ -42,32 +40,47 @@ func processLine1(fields []string, queries map[string]*QueryInfoc1) {
     }
 
     if sql != "null" {
+        if ParseMode == "1" {
+            rtValue = 0
+        } else if ParseMode == "2" {
+            rtValue = timeDelta
+        }
+
         // 如果 SQL 不为空，向 map 添加一行数据
         queries[streamNo] = &QueryInfoc1{
             Sno:   streamNo,
-            Rt:    0,
+            Rt:    rtValue,
             Sip:   srcIP,
             Sport: srcPort,
             Sql:   sql,
         }
     } else {
-        // 如果 SQL 为空，检查 map 中是否存在该 streamNo
         if query, exists := queries[streamNo]; exists {
-            query.Rt += timeDelta
-            if tcpLen > 0 {
-                // 打印信息并从 map 删除
-                fmt.Printf("Stream_No: %s, Response_Time: %f, Source_IP: %s, Source_Port: %s, SQL: %s\n",
-                    query.Sno, query.Rt, query.Sip, query.Sport, query.Sql)
-                delete(queries, streamNo)
+            if ParseMode == "1" {
+                query.Rt += timeDelta
+                if tcpLen > 0 {
+                    // 打印信息并从 map 删除
+                    fmt.Printf("Stream_No: %s, Response_Time: %f, Source_IP: %s, Source_Port: %s, SQL: %s\n",
+                        query.Sno, query.Rt, query.Sip, query.Sport, query.Sql)
+                    delete(queries, streamNo)
+                }
+            } else if ParseMode == "2" {
+                if tcpLen > 0 {
+                    query.Rt = timeDelta - query.Rt // 更新 Rt
+                    // 将信息写入输出文件
+                    fmt.Printf("Stream_No: %s, Response_Time: %f, Source_IP: %s, Source_Port: %s, SQL: %s\n",
+                        query.Sno, query.Rt, query.Sip, query.Sport, query.Sql)
+                    delete(queries, streamNo)
+                }
             }
         }
     }
 }
 
 // func main() {
-func Cli(tsharkFile string) {
+func Cli(tsharkFile ,ParseMode string) {
     if tsharkFile == "" {
-        fmt.Println("Usage: ./parse-tshark -mode parse2cli -tsharkfile ./tshark.log")
+        fmt.Println("Usage: ./parse-tshark -mode parse2cli -parsemode 1 -tsharkfile ./tshark.log")
         return
     }
 
@@ -91,7 +104,7 @@ func Cli(tsharkFile string) {
         if len(fields) >= 7 {
             // 如果之前有正在处理的行，先处理它
             if len(currentFields) > 0 {
-                processLine1(currentFields, queries)
+                processLine1(currentFields, queries,ParseMode)
                 currentFields = []string{}
             }
             currentFields = fields
@@ -103,7 +116,7 @@ func Cli(tsharkFile string) {
 
     // 处理最后一行
     if len(currentFields) > 0 {
-        processLine1(currentFields, queries)
+        processLine1(currentFields, queries,ParseMode)
     }
 
     if err := scanner.Err(); err != nil {
