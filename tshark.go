@@ -49,7 +49,7 @@ var (
 )
 
 func init() {
-    flag.StringVar(&tsharkFile, "tshark", "tshark.log", "Path to the tshark log file")
+    flag.StringVar(&tsharkFile, "tsharkfile", "tshark.log", "Path to the tshark log file")
     flag.StringVar(&hostInfoFile, "hostinfo", "host.ini", "Path to the host info file")
     flag.StringVar(&outputFile, "outfile", "tishark_out.json", "Path for the formated file")
     flag.StringVar(&defaultUser, "defaultuser", "default_user", "Default username if not provided")
