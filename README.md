@@ -43,10 +43,10 @@ mycat show @@connection 默认没记录 user 信息，所以抓出来是 null
 
 ```
 ## 4. 使用 sql-replay 进行回放
-说明：sql-replay 默认是一个回放 MySQL 慢查询日志的工具：[https://github.com/Bowen-Tang/sql-replay](sql-replay)
+说明：sql-replay 默认是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
 
 
 
 # 感谢这位大佬
-[https://plantegg.github.io/2019/06/21/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82%E6%8A%93%E5%8C%85--WireShark%E4%B9%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%89%88tshark/]()
+[就是要你懂抓包](https://plantegg.github.io/2019/06/21/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82%E6%8A%93%E5%8C%85--WireShark%E4%B9%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%89%88tshark/)
 ![image](https://github.com/Bowen-Tang/parse-tshark/assets/52245161/c1f28317-c5c6-43bb-b568-3ce9eb7504a3)
