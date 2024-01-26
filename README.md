@@ -67,9 +67,13 @@ done
 
 # 抓包对性能的影响
 测试环境: 8C VM
+
 MySQL: 8.0.33
+
 tshark: 3.2.3
+
 测试用例: sysbench
+
 
 | 并发 | 初始 TPS|CPU   |    tshark port| tshark port+mysql | tcpdump port|
 |: --- : |: --- :|:--- :|:    ---  :|: --- :|: ---  :|
