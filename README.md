@@ -47,8 +47,7 @@ mycat show @@connection 默认没记录 user 信息，所以抓出来是 null
 
 
 
-# 感谢这位大佬
-twitter: @plantegg
+# 感谢[@plantegg](https://plantegg.github.io/)大佬分享的抓包方法
 [就是要你懂抓包](https://plantegg.github.io/2019/06/21/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82%E6%8A%93%E5%8C%85--WireShark%E4%B9%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%89%88tshark/)
 ![image](https://github.com/Bowen-Tang/parse-tshark/assets/52245161/c1f28317-c5c6-43bb-b568-3ce9eb7504a3)
-我好像懂了
+# 感谢[@zr-hebo](https://github.com/zr-hebo/sniffer-agent)大佬提供的长连接获取连接信息的思路
