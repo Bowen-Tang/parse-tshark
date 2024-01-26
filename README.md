@@ -45,6 +45,15 @@ mycat show @@connection 默认没记录 user 信息，所以抓出来是 null
 ## 4. 使用 sql-replay 进行回放
 说明：sql-replay 默认是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
 
+# 抓包对性能的影响
+| 并发      | 初始（TPS）     | CPU  | LOAD     |
+| ---------- | :-----------:  | :-----------: | ---------- |
+| 1      | 148.28     |  25.6% | 3.6     |
+| 5      | 342.12     | 37.9%  | 4.8     |
+| 10      | 525.76     | 47.7%  | 6.0     |
+| 50      | 1103.53     | 73.9%  | 27.6     |
+| 100      | 971.19     | 74.8%  | 26.9     |
+
 
 
 # 感谢[@plantegg](https://plantegg.github.io/)大佬分享的抓包方法
