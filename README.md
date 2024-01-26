@@ -10,7 +10,11 @@ yum install -y wireshark # Centos 7 自带的版本较低，但也能工作，�
 
 # 使用说明
 ## 1. 使用 tshark 抓取 MySQL 数据包
-
+### 方式一：使用 tshark 增加 mysql.query 和 3306 端口过滤（资源不够时性能影响大）
+```
+sudo tshark -Y "mysql.query or ( tcp.srcport==3306)" -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
+```
+### 方式二：使用 tshark 3306 端口过滤、二次过滤文件内容中的 mysql.query
 ```
 sudo tshark -Y "mysql.query or ( tcp.srcport==3306)" -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|'
 ```
@@ -46,15 +50,15 @@ mycat show @@connection 默认没记录 user 信息，所以抓出来是 null
 说明：sql-replay 默认是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
 
 # 抓包对性能的影响
-| 并发 | 初始 TPS|CPU   |    tshark port 过滤| tshark port+mysql 过滤 | tcpdump port 过滤|
-| ...  | ...     |...   |    ...  | ...  | ...  | ...  |
+| 并发 | 初始 TPS|CPU   |    tshark port| tshark port+mysql | tcpdump port|
+|: --- : |: --- :|:--- :|:    ---  :|: --- :|: ---  :|
 |1     |148.28   | 25.6%     |    143.56   |  138.20    |  145.14  |
 |5     |342.12   | 37.9%     |    324.85     | 320.24   |  326.13  |
 |10    |525.76   | 47.7%     |    495.98     | 457.25   |  511.26  |
-|50    |1103.53  | 73.9%     |    1017.46    | 871.50   |  1145.98 |
+|50    |1103.53  | 73.9%     |    1017.46    | 871.50   |  1045.98 |
 |100   |1301.19  | 79.8%     |    1237.04    | 968.46   |  1255.13 |
-
-
+1. 低并发+资源充足时，影响不大
+2. 高并发+资源不够时，有 7%，增加 mysql filter 后性能退化 21%，tcpdump 性能退化 5%
 
 # 感谢[@plantegg](https://plantegg.github.io/)大佬分享的抓包方法
 [就是要你懂抓包](https://plantegg.github.io/2019/06/21/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82%E6%8A%93%E5%8C%85--WireShark%E4%B9%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%89%88tshark/)
