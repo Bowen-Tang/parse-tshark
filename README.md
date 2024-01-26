@@ -71,7 +71,7 @@ done
 3. tshark: 3.2.3
 4. 测试用例: sysbench
 
-| 并发 | 初始 TPS | CPU   | tshark port | tshark port+mysql | tcpdump port |
+| 并发 | 初始 TPS | CPU   | TPS: tshark port | TPS: tshark port+mysql |TPS: tcpdump port |
 |:----:|:--------:|:-----:|:-----------:|:-----------------:|:------------:|
 | 1    | 148.28   | 25.6% | 143.56      | 138.20            | 145.14       |
 | 5    | 342.12   | 37.9% | 324.85      | 320.24            | 326.13       |
