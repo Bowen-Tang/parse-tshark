@@ -23,7 +23,7 @@ sudo tshark -i eth0 -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,m
 sudo tshark -i eth0 -f "tcp port 3306" -a duration:3600 -b filesize:2000000 -b files:200 -w ts.pcap
 ```
 #### 分析包
-该命令针对 *抓包* 生成的 pcap 文件进行处理，处理成 parst-tshark 工具可读的文件（建议将这些文件传输到回放服务器处理）
+该命令针对**抓包**生成的 pcap 文件进行处理，处理成 parst-tshark 工具可读的文件（建议将这些文件传输到回放服务器处理）
 ```
 for i in `ls -rth ts*.pcap`
 do
@@ -54,12 +54,10 @@ done
 ```
 ./parse-tshark -mode parse2cli -parsemode 1 -tsharkfile ./tshark.log
 ```
-注意：两种抓包方式在计算 SQL 响应时间时不同，必须要将 parsemode 指定正确才能计算出正确的 SQL 执行时间
 ### 3.2 解析模式：生成 sql-replay 可回放的文件
 ```
 ./parse-tshark -mode parse2file -parsemode 1 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
 ```
-注意：两种抓包方式在计算 SQL 响应时间时不同，必须要将 parsemode 指定正确才能计算出正确的 SQL 执行时间
 ## 4. 使用 sql-replay 进行回放
 说明：sql-replay 默认是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
 
