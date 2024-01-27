@@ -10,24 +10,25 @@ yum install -y wireshark # Centos 7 自带的版本较低，但也能工作，�
 
 # 使用说明
 ## 1. 使用 tshark 抓取 MySQL 数据包（tcpdump 抓取的数据包 parse-tshark 工具无法正确处理）
-### 方式一：使用 tshark 对 mysql.query 和 3306 端口过滤
-该方式会直接生成 parse-tshark 工具可读取的文件，生成的文件比较小，但在资源不够时对 MySQL 性能影响大
+### 方式一：使用 tshark 进行 port+mysql 过滤
+该方式会直接生成 parse-tshark 工具可读取的文件，生成的文件比较小，但在资源不够时对 MySQL 性能影响大（不推荐在生产使用）
 ```
-sudo tshark -i eth0 -Y "mysql.query or ( tcp.srcport==3306)" -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
+sudo tshark -i eth0 -Y "mysql.query or ( tcp.srcport==4000)" -d tcp.port==4000,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> p_f.out
 ```
-### 方式二：使用 tshark 3306 端口过滤，二次过滤文件内容中的 mysql.query
-该命令只是根据 3306 端口和 eth0 网卡抓包，生成的文件比较大，但不对数据进行格式化
+### 方式二：使用 tshark 进行 port 过滤，再二次过滤文件中的 mysql.query 和 响应时间
+该命令只是根据 3306 端口和 eth0 网卡抓包，生成的文件比较大，但对生产性能影响小
+#### 抓包
 ```
 sudo tshark -i eth0 -f "tcp port 3306" -a duration:3600 -b filesize:2000000 -b files:200 -w ts.pcap
 ```
 该命令针对步骤 1 生成的 pcap 文件进行处理，处理成 parst-tshark 工具可读的文件（建议将这些文件传输到回放服务器处理）
 ```
-for i in `ls -lrth ts.*.pcap`
+#### 分析包
+for i in `ls -rth ts*.pcap`
 do
-sudo tshark -r $i -Y "mysql.query or (tcp.srcport == 3306)" -T fields -e tcp.stream -e tcp.len -e frame.time_relative -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
+sudo tshark -r $i -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> all.out
 done
 ```
-
 ## 2. 获取抓包过程中的 user db 信息
 由于 tshark 抓包时获取 user/db 信息过于复杂、且存在局限性，所以通过工具每隔 500ms 获取一次 MySQL 数据库的 processlist 视图信息，通过源端 IP+端口 与 processlist 视图中的 host 匹配
 
