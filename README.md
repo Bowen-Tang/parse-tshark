@@ -16,14 +16,15 @@ yum install -y wireshark # Centos 7 自带的版本较低，但也能工作，�
 sudo tshark -i eth0 -Y "mysql.query or ( tcp.srcport==4000)" -d tcp.port==4000,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> p_f.out
 ```
 ### 方式二：使用 tshark 进行 port 过滤，再二次过滤文件中的 mysql.query 和 响应时间
-该命令只是根据 3306 端口和 eth0 网卡抓包，生成的文件比较大，但对生产性能影响小
+该方式生成的文件比较大，但对生产性能影响小
 #### 抓包
+该命令只是根据 3306 端口和 eth0 网卡抓包，以抓取 1 小时为例
 ```
 sudo tshark -i eth0 -f "tcp port 3306" -a duration:3600 -b filesize:2000000 -b files:200 -w ts.pcap
 ```
-该命令针对步骤 1 生成的 pcap 文件进行处理，处理成 parst-tshark 工具可读的文件（建议将这些文件传输到回放服务器处理）
-```
 #### 分析包
+该命令针对 *抓包* 生成的 pcap 文件进行处理，处理成 parst-tshark 工具可读的文件（建议将这些文件传输到回放服务器处理）
+```
 for i in `ls -rth ts*.pcap`
 do
 sudo tshark -r $i -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> all.out
@@ -43,6 +44,8 @@ done
 ./parse-tshark -mode getmycat -dbinfo 'username:password@tcp(localhost:9066)' -output host.ini
 
 ```
+如抓取的是 mycat 中间件流量，则需要使用如下命令：
+
 注意：mycat show @@connection 默认没记录 user 信息，所以在 host.ini 中显示的是 null
 
 ## 3. 解析数据包
