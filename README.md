@@ -59,7 +59,7 @@ done
 ./parse-tshark -mode parse2file -parsemode 1 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
 ```
 ## 4. 使用 sql-replay 进行回放
-说明：sql-replay 默认是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
+说明：sql-replay 是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
 
 # 抓包对性能的影响
 1. 测试环境: 8C VM
