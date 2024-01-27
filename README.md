@@ -82,6 +82,9 @@ done
 1. 低并发+资源充足时，“tshark 抓包方式一”、“tshark 抓包方式二”、“tcpdump 抓包方式”三者对 MySQL 的影响均不大
 2. 高并发+资源不够时，“tshark 抓包方式一”有 7% 影响，“tshark 抓包方式二”有 21% 影响，“tcpdump 抓包方式”有 5% 影响
 
+# 已知问题
+1. 负载均衡节点抓包时，无法根据 host:port 来获得 id,user,db 等信息，只能在 parse2file 时使用 -defaultuser -defaultdb 手工指定
+2. mycat 节点抓包时，无法获取到 user 信息，只能在 parse2file 时 -defaultuser 手工指定
 
 # 感谢[@plantegg](https://plantegg.github.io/)大佬分享的抓包方法
 [就是要你懂抓包](https://plantegg.github.io/2019/06/21/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82%E6%8A%93%E5%8C%85--WireShark%E4%B9%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%89%88tshark/)
