@@ -52,18 +52,12 @@ done
 ### 3.1 打印模式：将数据包中的 SQL 信息等打印到屏幕（该模式仅适用于调试）
 
 ```
-# 使用解析模式 1，也就是对应 tshark 抓取方式一
 ./parse-tshark -mode parse2cli -parsemode 1 -tsharkfile ./tshark.log
-# 使用解析模式 2，也就是对应 tshark 抓取方式二
-./parse-tshark -mode parse2cli -parsemode 2 -tsharkfile ./tshark.log
 ```
 注意：两种抓包方式在计算 SQL 响应时间时不同，必须要将 parsemode 指定正确才能计算出正确的 SQL 执行时间
 ### 3.2 解析模式：生成 sql-replay 可回放的文件
 ```
-# 使用解析模式 1，也就是对应 tshark 抓取方式一
 ./parse-tshark -mode parse2file -parsemode 1 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
-# 使用解析模式 2，也就是对应 tshark 抓取方式一
-./parse-tshark -mode parse2file -parsemode 2 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
 ```
 注意：两种抓包方式在计算 SQL 响应时间时不同，必须要将 parsemode 指定正确才能计算出正确的 SQL 执行时间
 ## 4. 使用 sql-replay 进行回放
