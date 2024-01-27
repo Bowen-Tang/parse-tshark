@@ -111,7 +111,7 @@ func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostIn
     srcIP := fields[3]
     srcPort := fields[4]
     sql := strings.Join(fields[7:], " ")
-    sql = strings.ReplaceAll(sql, "\n", "\\n")
+//    sql = strings.ReplaceAll(sql, "\n", "\\n")
 
     if sql == "" {
         sql = "null"
