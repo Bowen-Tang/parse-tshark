@@ -13,7 +13,7 @@ yum install -y wireshark # Centos 7 自带的版本较低，但也能工作，�
 ### 方式一：使用 tshark 进行 port+mysql 过滤
 该方式会直接生成 parse-tshark 工具可读取的文件，生成的文件比较小，但在资源不够时对 MySQL 性能影响大（不推荐在生产使用）
 ```
-sudo tshark -i eth0 -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
+sudo tshark -i eth0 -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e frame.time_epoch -e mysql.query -E separator='|' >> tshark.log
 ```
 ### 方式二：使用 tshark 进行 port 过滤，再二次过滤文件中的 mysql.query 和 响应时间
 该方式生成的文件比较大，但对生产性能影响小
@@ -27,7 +27,7 @@ sudo tshark -i eth0 -f "tcp port 3306" -a duration:3600 -b filesize:2000000 -b f
 ```
 for i in `ls -rth ts*.pcap`
 do
-sudo tshark -r $i -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e mysql.query -E separator='|' >> tshark.log
+sudo tshark -r $i -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e frame.time_epoch -e mysql.query -E separator='|' >> tshark.log
 done
 ```
 ## 2. 获取抓包过程中的 user db 信息
