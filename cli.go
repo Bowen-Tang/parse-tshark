@@ -22,7 +22,7 @@ type QueryInfoc1 struct {
 
 // processLine1 函数用于处理每行数据
 func processLine1(fields []string, queries map[string]*QueryInfoc1, ParseMode string) {
-    if len(fields) < 7 {
+    if len(fields) < 8 {
         fmt.Println("Skipped a line due to insufficient fields:", strings.Join(fields, "|"))
         return
     }
@@ -32,7 +32,7 @@ func processLine1(fields []string, queries map[string]*QueryInfoc1, ParseMode st
     timeDelta, _ := strconv.ParseFloat(fields[2], 64)
     srcIP := fields[3]
     srcPort := fields[4]
-    sql := strings.Join(fields[7:], " ")
+    sql := strings.Join(fields[8:], " ")
     sql = strings.ReplaceAll(sql, "\n", "\\n")
 
     if sql == "" {
@@ -101,7 +101,7 @@ func Cli(tsharkFile ,ParseMode string) {
         line := scanner.Text()
         fields := strings.Split(line, "|")
 
-        if len(fields) >= 7 {
+        if len(fields) >= 8 {
             // 如果之前有正在处理的行，先处理它
             if len(currentFields) > 0 {
                 processLine1(currentFields, queries,ParseMode)

@@ -17,6 +17,7 @@ type QueryInfo struct {
     Rt    float64
     Sip   string
     Sport string
+    Ts    float64 // 新增执行完成时间戳
     Sql   string
 }
 
@@ -36,6 +37,7 @@ type OutputEntry struct {
     Username     string `json:"username"`
     DBName       string `json:"dbname"`
     SQLType      string `json:"sql_type"`
+    Ts           float64 `json:"ts"` // 新增执行完成时间戳
     SQL          string `json:"sql"`
 }
 
@@ -76,7 +78,7 @@ func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB,Par
         line := scanner.Text()
         fields := strings.Split(line, "|")
 
-        if len(fields) >= 7 {
+        if len(fields) >= 8 {
             // 如果之前有正在处理的行，先处理它
             if len(currentFields) > 0 {
                 processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultDB,ParseMode)
@@ -100,7 +102,7 @@ func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB,Par
 }
 
 func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostInfoMap map[string]HostInfo, output *os.File,defaultUser ,defaultDB,ParseMode string) {
-    if len(fields) < 7 {
+    if len(fields) < 8 {
         fmt.Println("Skipped a line due to insufficient fields:", strings.Join(fields, "|"))
         return
     }
@@ -110,8 +112,8 @@ func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostIn
     timeDelta, _ := strconv.ParseFloat(fields[2], 64)
     srcIP := fields[3]
     srcPort := fields[4]
-    sql := strings.Join(fields[7:], " ")
-//    sql = strings.ReplaceAll(sql, "\n", "\\n")
+    ts, _ := strconv.ParseFloat(fields[7], 64)
+    sql := strings.Join(fields[8:], " ")
 
     if sql == "" {
         sql = "null"
@@ -130,6 +132,7 @@ func processAndOutputLine(fields []string, queries map[string]*QueryInfo, hostIn
             Rt:    rtValue,
             Sip:   srcIP,
             Sport: srcPort,
+            Ts:    ts, // 增加执行完成时间戳
             Sql:   sql,
         }
     } else if query, exists := queries[streamNo]; exists {
@@ -195,6 +198,7 @@ func createOutputEntry(query *QueryInfo, hostInfoMap map[string]HostInfo, host ,
         Username:     username,
         DBName:       dbName,
         SQLType:      sqlType,
+        Ts:           query.Ts, // 增加执行完成时间戳
         SQL:          query.Sql,
     }
 }
