@@ -188,7 +188,7 @@ func createOutputEntry(query *QueryInfo, hostInfoMap map[string]HostInfo, host ,
             username = defaultUser
         }
         dbName = info.DB
-        if dbName == "" {
+        if dbName == "" || dbName == "null" { // 检查是否为 "null" 并替换为 defaultDB
             dbName = defaultDB
         }
     } else {
