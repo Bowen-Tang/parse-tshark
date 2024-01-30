@@ -6,6 +6,7 @@ import (
     "fmt"
     "hash/crc32"
     "os"
+    "time"
     "strconv"
     "strings"
     "github.com/pingcap/tidb/pkg/parser"
@@ -94,6 +95,15 @@ func ParseTshark(tsharkFile,hostInfoFile,replayoutFile,defaultUser,defaultDB,Par
     // 处理最后一行
     if len(currentFields) > 0 {
         processAndOutputLine(currentFields, queries, hostInfoMap, output,defaultUser ,defaultUser,ParseMode)
+    }
+
+    // 处理 map 中剩余的 queries
+    for _, query := range queries {
+        currentTimestamp := float64(time.Now().UnixNano()) / 1e9
+        query.Rt = currentTimestamp - query.Ts // 计算 QueryTime
+        outputEntry := createOutputEntry(query, hostInfoMap, query.Sip+":"+query.Sport, defaultUser, defaultDB)
+        jsonData, _ := json.Marshal(outputEntry)
+        output.WriteString(string(jsonData) + "\n")
     }
 
     if err := scanner.Err(); err != nil {
