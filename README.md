@@ -44,7 +44,6 @@ done
 ./parse-tshark -mode getmycat -dbinfo 'username:password@tcp(localhost:9066)' -output host.ini
 
 ```
-如抓取的是 mycat 中间件流量，则需要使用如下命令：
 
 注意：mycat show @@connection 默认没记录 user 信息，所以在 host.ini 中显示的是 null
 
