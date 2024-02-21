@@ -74,6 +74,10 @@ done
 | 50   | 1103.53  | 73.9% | 1017.46     | 871.50            | 1045.98      |
 | 100  | 1301.19  | 79.8% | 1237.04     | 968.46            | 1255.13      |
 
+**说明**
+1. 低并发+资源充足时，“tshark 抓包方式一”、“tshark 抓包方式二”、“tcpdump 抓包方式”三者对 MySQL 的影响均不大
+2. 高并发+资源不够时，“tshark 抓包方式一”有 7% 影响，“tshark 抓包方式二”有 21% 影响，“tcpdump 抓包方式”有 5% 影响
+
 # 抓包成功率
 sysbench 50 并发 * select_random_points * 1800 秒，总共执行 45757727 条 SQL
 
@@ -83,10 +87,6 @@ parse-tshark 最终解析出 45747497 条 SQL
 
 ![1706367141839](https://github.com/Bowen-Tang/parse-tshark/assets/52245161/6eb5ed7b-078a-4459-b62d-88363f856054)
 
-
-**说明**
-1. 低并发+资源充足时，“tshark 抓包方式一”、“tshark 抓包方式二”、“tcpdump 抓包方式”三者对 MySQL 的影响均不大
-2. 高并发+资源不够时，“tshark 抓包方式一”有 7% 影响，“tshark 抓包方式二”有 21% 影响，“tcpdump 抓包方式”有 5% 影响
 
 # 已知问题
 1. 负载均衡节点抓包时，无法根据 host:port 来获得 id,user,db 等信息，只能在 parse2file 时使用 -defaultuser -defaultdb 手工指定
