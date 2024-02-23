@@ -55,7 +55,7 @@ done
 ```
 ### 3.2 解析模式：生成 sql-replay 可回放的文件
 ```
-./parse-tshark -mode parse2file -parsemode 1 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshrark.out -defaultuser user_null -defaultdb db_null
+./parse-tshark -mode parse2file -parsemode 1 -tsharkfile ./tshark.log -hostfile host.ini -replayfile ./tshark.out -defaultuser user_null -defaultdb db_null
 ```
 ## 4. 使用 sql-replay 进行回放
 说明：sql-replay 是一个回放 MySQL 慢查询日志的工具：[sql-replay](https://github.com/Bowen-Tang/sql-replay)
