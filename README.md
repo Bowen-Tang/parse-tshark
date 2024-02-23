@@ -10,7 +10,7 @@ yum install -y wireshark # Centos 7 自带的版本较低，但也能工作，�
 
 # 使用说明
 ## 1. 使用 tshark 抓取 MySQL 数据包（tcpdump 抓取的数据包 parse-tshark 工具无法正确处理）
-### 方式一：使用 tshark 进行 port+mysql 过滤
+### 方式一：使用 tshark 进行 port+mysql 过滤（不推荐）
 该方式会直接生成 parse-tshark 工具可读取的文件，生成的文件比较小，但在资源不够时对 MySQL 性能影响大（不推荐在生产使用）
 ```
 sudo tshark -i eth0 -Y "mysql.query or ( tcp.srcport==3306)" -d tcp.port==3306,mysql -o tcp.calculate_timestamps:true -T fields -e tcp.stream -e tcp.len -e tcp.time_delta -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e frame.time_epoch -e mysql.query -E separator='|' >> tshark.log
