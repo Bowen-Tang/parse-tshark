@@ -94,6 +94,8 @@ parse-tshark 最终解析出 45747497 条 SQL
 3. 上游是 prepare 预编译 SQL 时，解析出来的 SQL 无法执行，在 sql-replay 时这部分 SQL 在数据库中会报错
 4. 抓包开始到抓包过程结束还没执行完成的 SQL，不会解析到输出文件中
 
+[tshark MySQL 过滤器说明](https://www.wireshark.org/docs/dfref/m/mysql.html#:~:text=Protocol%20field%20name:%20mysql.%20Versions:%201.0.0%20to%204.4.0.%20Back%20to)
+
 # 感谢[@plantegg](https://plantegg.github.io/)大佬分享的抓包方法
 [就是要你懂抓包](https://plantegg.github.io/2019/06/21/%E5%B0%B1%E6%98%AF%E8%A6%81%E4%BD%A0%E6%87%82%E6%8A%93%E5%8C%85--WireShark%E4%B9%8B%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%89%88tshark/)
 ![image](https://github.com/Bowen-Tang/parse-tshark/assets/52245161/c1f28317-c5c6-43bb-b568-3ce9eb7504a3)
