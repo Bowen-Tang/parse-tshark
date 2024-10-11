@@ -6,12 +6,17 @@ import (
     "os"
 )
 
+var version = "0.1.3, build date 20241011"
+
+var showVersion bool
+
 func main() {
     var mode string
     flag.StringVar(&mode, "mode", "", "Mode of operation: parse2cli ,parse2file , getmysql, or getmycat")
 
     // 共用的标志
     var ParseMode string
+    flag.BoolVar(&showVersion, "version", false, "Show version info")
     var tsharkFile, dbInfo, outputFile,hostInfoFile , replayoutFile, defaultUser, defaultDB string
     flag.StringVar(&ParseMode, "parsemode", "1", "tshark capture mode, 1 or 2")
     flag.StringVar(&tsharkFile, "tsharkfile", "", "Path to the tshark log file: tshark.log")
@@ -22,6 +27,11 @@ func main() {
     flag.StringVar(&defaultUser, "defaultuser", "", "Default username if not provided: user_null")
     flag.StringVar(&defaultDB, "defaultdb", "", "Default database if not provided: db_null")
     flag.Parse()
+
+    if showVersion {
+        fmt.Println("SQL Replay Tool Version:", version)
+        os.Exit(0)
+    }
 
 
     if mode == "" {

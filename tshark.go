@@ -38,6 +38,7 @@ type OutputEntry struct {
     Username     string `json:"username"`
     DBName       string `json:"dbname"`
     SQLType      string `json:"sql_type"`
+    Digest       string `json:"digest"`
     Ts           float64 `json:"ts"` // 新增执行完成时间戳
     SQL          string `json:"sql"`
 }
@@ -199,7 +200,7 @@ func createOutputEntry(query *QueryInfo, hostInfoMap map[string]HostInfo, host ,
         dbName = defaultDB
     }
 
-    sqlType := getSQLType(query.Sql)
+    sqlType,sqlDigest := getSQLInfo(query.Sql)
 
     return OutputEntry{
         ConnectionID: connectionID,
@@ -208,6 +209,7 @@ func createOutputEntry(query *QueryInfo, hostInfoMap map[string]HostInfo, host ,
         Username:     username,
         DBName:       dbName,
         SQLType:      sqlType,
+        Digest:       sqlDigest,
         Ts:           query.Ts, // 增加执行完成时间戳
         SQL:          query.Sql,
     }
@@ -233,11 +235,14 @@ func readHostInfo(filename string) map[string]HostInfo {
     return hostInfoMap
 }
 
-func getSQLType(sql string) string {
+func getSQLInfo(sql string) (string, string) {
     normalizedSQL := parser.Normalize(sql)
-    words := strings.Fields(normalizedSQL)
+    digest := parser.DigestNormalized(normalizedSQL).String()
+    words := strings.Fields(normalizedSQL) 
+
     if len(words) > 0 {
-        return words[0]
+        return words[0], digest
     }
-    return "other"
+    
+    return "other", digest
 }
